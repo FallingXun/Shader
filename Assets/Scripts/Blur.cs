@@ -32,5 +32,6 @@ public class Blur : MonoBehaviour
         RenderTexture buffer1 = RenderTexture.GetTemporary(Screen.width / 2, Screen.height / 2);
 
         Graphics.Blit(buffer0, dst, m_Mat, 1);
+        
     }
 }

@@ -1,5 +1,5 @@
 ﻿
-Shader "Custom/SDF.shader"
+Shader "Custom/SDF"
 {
 	Properties
 	{
@@ -48,7 +48,7 @@ Shader "Custom/SDF.shader"
 			{
 				float4 color =  tex2D(_MainTex, i.uv);
 				float distance = color.a;
-				color.a = distance;
+				color.a = smoothstep(_Distance - _Smooth, _Distance + _Smooth, distance);
 				return float4(1, 1, 1, color.a);
 			}
 

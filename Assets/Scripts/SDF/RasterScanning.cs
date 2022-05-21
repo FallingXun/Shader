@@ -88,6 +88,11 @@ public class RasterScanning
 
     public static Grid[,] Init(bool[,] maps)
     {
+        m_Width = maps.GetLength(0);
+        m_Height = maps.GetLength(1);
+        m_GridMax = new Grid(m_Width, m_Height);
+        m_GridMin = new Grid(0, 0);
+
         var gridMaps = new Grid[m_Width, m_Height];
         for (int j = 0; j < m_Height; j++)
         {
@@ -161,7 +166,7 @@ public class RasterScanning
         Grid grid = GetGrid(gridMaps, i, j);
 
         int compare_i = i + offset_i;
-        int compare_j = i + offset_j;
+        int compare_j = j + offset_j;
         if (compare_i < 0 || compare_i >= m_Width || compare_j < 0 || compare_j >= m_Height)
         {
             // 超出边界的节点不进行比较

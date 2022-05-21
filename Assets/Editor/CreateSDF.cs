@@ -136,6 +136,68 @@ public class CreateSDF : Editor
         Debug.Log(log);
     }
 
+    [MenuItem("SDF/Create_RasterScanningTest")]
+    public static void Create_RasterScanningTest()
+    {
+        var color1 = new bool[,]
+        {
+           { false,false,false,false,false,false },
+           { false,false,false,false,false,false },
+           { true,false,false,false,false,false },
+           { false,false,false,false,false,false },
+           { false,true,false,false,false,false },
+           { false,false,false,true,false,false },
+        };
+        var color2 = new bool[,]
+       {
+           { true,true,true,true,true,true },
+           { true,true,true,true,true,true },
+           { false,true,true,true,true,true },
+           { true,true,true,true,true,true },
+           { true,false,true,true,true,true },
+           { true,true,true,false,true,true },
+       };
+        var s1 = RasterScanning.Compute(color1);
+        var s2 = RasterScanning.Compute(color2);
+        int width = s1.GetLength(0);
+        int height = s1.GetLength(1);
+        string log = "";
+        for (int j = 0; j < height; j++)
+        {
+            for (int i = 0; i < width; i++)
+            {
+                log += (/*s1[i, j].GetDistance() - */s2[i,j].GetDistance()) + ", ";
+            }
+            log += "\n";
+        }
+        Debug.Log(log);
+    }
+
+    [MenuItem("SDF/Create_BruteForce")]
+    public static void CreateSDF_BruteForce()
+    {
+        var color = GetColor();
+        if (color == null)
+        {
+            return;
+        }
+        var sdf = BruteForce.CreateSDF(color);
+        int width = sdf.GetLength(0);
+        int height = sdf.GetLength(1);
+        var tex = new Texture2D(width, height);
+        for (int j = 0; j < height; j++)
+        {
+            for (int i = 0; i < width; i++)
+            {
+                tex.SetPixel(i, j, new Color(1, 1, 1, sdf[i, j]));
+            }
+        }
+
+        var obj = Selection.activeObject;
+        AssetDatabase.CreateAsset(tex, string.Format("Assets/SDF/BruteForce_{0}.asset", obj.name));
+        AssetDatabase.Refresh();
+    }
+
     [MenuItem("SDF/Create_IndependentScanning")]
     public static void CreateSDF_IndependentScanning()
     {

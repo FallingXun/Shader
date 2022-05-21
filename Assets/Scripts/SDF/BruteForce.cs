@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System;
 
 /// <summary>
-/// 独立扫描算法（Saito and Toriwaki, 1994）
+/// 暴力算法
 /// </summary>
-public class IndependentScanning
+public class BruteForce
 {
     public static float[,] CreateSDF(bool[,] color)
     {
@@ -74,86 +74,34 @@ public class IndependentScanning
         int height = maps.GetLength(1);
 
         int[,] distance = new int[width, height];
-        int[] temp_width = new int[width];
-        // 1. 对每一行，计算目标点到非目标点的距离，即得到每个点(i,j)的水平距离
         for (int j = 0; j < height; j++)
         {
-            // 是否有非目标点
-            bool hasTarget = false;
             for (int i = 0; i < width; i++)
             {
+                // 1. 遍历每一个白色节点
                 if (maps[i, j] == true)
                 {
-                    if (i == 0)
+                    int min = int.MaxValue;
+                    for (int y = 0; y < height; y++)
                     {
-                        temp_width[i] = int.MaxValue;
-                    }
-                    else
-                    {
-                        if (temp_width[i - 1] == int.MaxValue)
+                        for (int x = 0; x < width; x++)
                         {
-                            temp_width[i] = int.MaxValue;
-                        }
-                        else
-                        {
-                            temp_width[i] = temp_width[i - 1] + 1;
-                        }
-                    }
-                }
-                else
-                {
-                    hasTarget = true;
-                    temp_width[i] = 0;
-                }
-            }
-            for (int i = width - 1; i >= 0; i--)
-            {
-                if (hasTarget == false)
-                {
-                    temp_width[i] = width;
-                }
-                else
-                {
-                    if (maps[i, j] == true)
-                    {
-                        if (i < width - 1)
-                        {
-                            temp_width[i] = Math.Min(temp_width[i + 1] + 1, temp_width[i]);
+                            if (maps[x, y] == true)
+                            {
+                                continue;
+                            }
+                            // 2. 遍历每一个黑色节点，计算白色节点到黑色节点的距离，记录最小值
+                            int dis = (x - i) * (x - i) + (y - j) * (y - j);
+                            if (dis < min)
+                            {
+                                min = dis;
+                            }
                         }
                     }
-                    else
-                    {
-                        temp_width[i] = 0;
-                    }
+                    distance[i, j] = min;
                 }
-            }
-
-            for (int i = 0; i < width; i++)
-            {
-                distance[i, j] = temp_width[i] * temp_width[i];
             }
         }
-        // 2. 对每一列，计算每个点(i,j)与每一行(i,y)的竖直距离，即得到当前点(i, j)的竖直距离数组
-        // 3. 将当前点(i, j)的竖直距离数组和当前列的对应点(i, y)的水平距离相加，其中的最小值即为当前点(i,j)的距离
-        for (int j = 0; j < height; j++)
-        {
-            for (int i = 0; i < width; i++)
-            {
-                int min = int.MaxValue;
-                for (int y = 0; y < height; y++)
-                {
-                    var dis = distance[i, y] + (j - y) * (j - y);
-                    min = Math.Min(dis, min);
-                }
-                temp_width[i] = min;
-            }
-
-            for (int i = 0; i < width; i++)
-            {
-                distance[i, j] = temp_width[i];
-            }
-        }
-
         return distance;
     }
 }

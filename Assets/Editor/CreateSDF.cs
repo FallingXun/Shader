@@ -166,7 +166,7 @@ public class CreateSDF : Editor
         {
             for (int i = 0; i < width; i++)
             {
-                log += (/*s1[i, j].GetDistance() - */s2[i,j].GetDistance()) + ", ";
+                log += (/*s1[i, j].GetDistance() - */s2[i, j].GetDistance()) + ", ";
             }
             log += "\n";
         }
@@ -193,8 +193,15 @@ public class CreateSDF : Editor
             }
         }
 
+
         var obj = Selection.activeObject;
-        AssetDatabase.CreateAsset(tex, string.Format("Assets/SDF/BruteForce_{0}.asset", obj.name));
+        var path = Path.Combine(Directory.GetCurrentDirectory(), string.Format("Assets/SDF/BruteForce_{0}.png", obj.name));
+        if (File.Exists(path))
+        {
+            File.Delete(path);
+        }
+        byte[] b = tex.EncodeToPNG();
+        File.WriteAllBytes(path, b);
         AssetDatabase.Refresh();
     }
 
@@ -219,7 +226,13 @@ public class CreateSDF : Editor
         }
 
         var obj = Selection.activeObject;
-        AssetDatabase.CreateAsset(tex, string.Format("Assets/SDF/IndependentScanning_{0}.asset", obj.name));
+        var path = Path.Combine(Directory.GetCurrentDirectory(), string.Format("Assets/SDF/IndependentScanning_{0}.png", obj.name));
+        if (File.Exists(path))
+        {
+            File.Delete(path);
+        }
+        byte[] b = tex.EncodeToPNG();
+        File.WriteAllBytes(path, b);
         AssetDatabase.Refresh();
     }
 
@@ -244,7 +257,13 @@ public class CreateSDF : Editor
         }
 
         var obj = Selection.activeObject;
-        AssetDatabase.CreateAsset(tex, string.Format("Assets/SDF/RasterScanning_{0}.asset", obj.name));
+        var path = Path.Combine(Directory.GetCurrentDirectory(), string.Format("Assets/SDF/RasterScanning_{0}.png", obj.name));
+        if (File.Exists(path))
+        {
+            File.Delete(path);
+        }
+        byte[] b = tex.EncodeToPNG();
+        File.WriteAllBytes(path, b);
         AssetDatabase.Refresh();
     }
 

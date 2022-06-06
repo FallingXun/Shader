@@ -98,12 +98,15 @@ public class QuadricErrorMetrics
             // 如果当前对的其中一个顶点已经替换为新顶点，则此对已经更新为其他点对，不再处理
             if (removeList.Contains(node.p.index1) || removeList.Contains(node.p.index2))
             {
+                removeList.Add(node.p.index1);
+                removeList.Add(node.p.index2);
                 continue;
             }
-            var list = new List<Plane>();
-            int[] removeIndex = new int[] { node.p.index1, node.p.index2 };
             removeList.Add(node.p.index1);
             removeList.Add(node.p.index2);
+            --limit;
+            var list = new List<Plane>();
+            int[] removeIndex = new int[] { node.p.index1, node.p.index2 };
             // 删除顶点
             foreach (var index in removeIndex)
             {
@@ -112,37 +115,37 @@ public class QuadricErrorMetrics
                 {
                     if (item.index1 == index)
                     {
-                        if(item.index2 == index || item.index3 == index)
+                        item.index1 = node.i;
+                        if (item.index2 == index || item.index2 == node.i || item.index3 == index || item.index3 == node.i)
                         {
                             list.Remove(item);
                         }
                         else
                         {
-                            item.index1 = node.i;
                             list.Add(item);
                         }
                     }
                     else if (item.index2 == index)
                     {
-                        if (item.index1 == index || item.index3 == index)
+                        item.index2 = node.i;
+                        if (item.index1 == index || item.index1 == node.i || item.index3 == index || item.index3 == node.i)
                         {
                             list.Remove(item);
                         }
                         else
                         {
-                            item.index2 = node.i;
                             list.Add(item);
                         }
                     }
                     else if (item.index3 == index)
                     {
-                        if (item.index1 == index || item.index2 == index)
+                        item.index3 = node.i;
+                        if (item.index1 == index || item.index1 == node.i || item.index2 == index || item.index2 == node.i)
                         {
                             list.Remove(item);
                         }
                         else
                         {
-                            item.index3 = node.i;
                             list.Add(item);
                         }
                     }
@@ -153,6 +156,10 @@ public class QuadricErrorMetrics
             // 将新产生的边再加入堆中
             foreach (var item in list)
             {
+                if(removeList.Contains(item.index1) || removeList.Contains(item.index2) || removeList.Contains(item.index3))
+                {
+                    continue;
+                }
                 var side12 = new Pair(item.index1, item.index2);
                 var side13 = new Pair(item.index1, item.index3);
                 var side23 = new Pair(item.index2, item.index3);
@@ -176,7 +183,6 @@ public class QuadricErrorMetrics
                 }
             }
             sides.Remove(node.p);
-            --limit;
         }
 
         int curIndex = 0;
@@ -208,7 +214,7 @@ public class QuadricErrorMetrics
             tris.Add(map[item.index2]);
             tris.Add(map[item.index3]);
         }
-
+        mesh.Clear();
         mesh.vertices = verts.ToArray();
         mesh.triangles = tris.ToArray();
     }
@@ -217,7 +223,6 @@ public class QuadricErrorMetrics
     {
         int index1 = pair.index1;
         int index2 = pair.index2;
-        int index12 = m_Vertices.Count;
         Vector3 v1 = m_Vertices[index1];
         Vector3 v2 = m_Vertices[index2];
         Vector3 v12 = (v1 + v2) / 2;
@@ -279,7 +284,10 @@ public class QuadricErrorMetrics
         Matrix4x4 Q = Matrix4x4.zero;
         foreach (var item in list)
         {
-            Q = AddMatrix(Q, item.Kp);
+            if(item.index1 == index||item.index2 == index || item.index3 == index)
+            {
+                Q = AddMatrix(Q, item.Kp);
+            }
         }
         return Q;
     }
@@ -518,10 +526,12 @@ public class MinHeap
 
     public void Push(Node n)
     {
+        int limit = 1000;
         nodes.Add(n);
         int index = nodes.Count - 1;
-        while (index > 0)
+        while (index > 0 && limit > 0)
         {
+            limit--;
             int parent = ParentIndex(index);
             if (nodes[index] < nodes[parent])
             {
@@ -535,19 +545,36 @@ public class MinHeap
                 break;
             }
         }
+        if (limit <= 0)
+        {
+            Debug.LogError("Push Error");
+        }
     }
 
     public Node Pop()
     {
+        int limit = 1000;
         var min = nodes[0];
         int index = 0;
         nodes[index] = nodes[nodes.Count - 1];
         nodes.RemoveAt(nodes.Count - 1);
-        while (IsLeaf(index) == false)
+        while (IsLeaf(index) == false && limit > 0)
         {
+            limit--;
             int left = LeftChildIndex(index);
             int right = RightChildIndex(index);
-            if (right < 0)
+            if (right > 0)
+            {
+                if (nodes[index] > nodes[right])
+                {
+                    var temp = nodes[index];
+                    nodes[index] = nodes[right];
+                    nodes[right] = temp;
+                    index = right;
+                    continue;
+                }
+            }
+            if (left > 0)
             {
                 if (nodes[index] > nodes[left])
                 {
@@ -555,35 +582,14 @@ public class MinHeap
                     nodes[index] = nodes[left];
                     nodes[left] = temp;
                     index = left;
-                }
-                else
-                {
-                    break;
+                    continue;
                 }
             }
-            else
-            {
-                if (nodes[left] < nodes[right])
-                {
-                    if (nodes[index] > nodes[left])
-                    {
-                        var temp = nodes[index];
-                        nodes[index] = nodes[left];
-                        nodes[left] = temp;
-                        index = left;
-                    }
-                }
-                else
-                {
-                    if (nodes[index] > nodes[right])
-                    {
-                        var temp = nodes[index];
-                        nodes[index] = nodes[right];
-                        nodes[right] = temp;
-                        index = right;
-                    }
-                }
-            }
+            break;
+        }
+        if (limit <= 0)
+        {
+            Debug.LogError("Pop Error");
         }
         return min;
     }

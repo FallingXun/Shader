@@ -320,7 +320,15 @@ public struct SideData
         }
         else
         {
-            index_min = index;
+            if (index_max < index)
+            {
+                index_min = index_max;
+                index_max = index;
+            }
+            else
+            {
+                index_min = index;
+            }
         }
     }
 }
